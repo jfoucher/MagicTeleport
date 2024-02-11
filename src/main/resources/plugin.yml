@@ -7,3 +7,8 @@ commands:
   magicteleport:
     aliases: [mtp]
     description: Give a teleportation block to a player
+    usage: /magicteleport
+
+permissions:
+  magicteleport.admin:
+    description: Allows you to give teleport blocks to players

@@ -8,12 +8,17 @@ import java.util.ArrayList;
 
 public class TeleportBlock {
 
-    public static ItemStack getBlock() {
+    public static ItemStack getBlock(String display_name) {
         ItemStack block = new ItemStack(Material.SHROOMLIGHT);
         ItemMeta meta = block.getItemMeta();
 
         if (meta != null) {
-            meta.setDisplayName("Bloc de téléportation");
+            if (display_name != null) {
+                meta.setDisplayName(display_name);
+            } else {
+                meta.setDisplayName("Bloc de téléportation");
+            }
+
             meta.setLocalizedName("teleport_block");
 
             ArrayList<String> lore = new ArrayList<>();

@@ -1,0 +1,9 @@
+CHOOSE_DESTINATION: "<bold><grey>[</bold><aqua>MagicTeleport</aqua><bold><grey>]</bold> Choisissez une destination"
+NO_DESTINATION: "<bold><grey>[</bold><aqua>MagicTeleport</aqua><bold><grey>]</bold> <red>Vous n'avez posé aucun bloc de téléportation</red>"
+BLOCK_LIST_FORMAT: '<underlined><color:red>%block_ref%<color:grey></underlined> : <color:yellow>%name% <color:grey><newline><bold>[</bold><color:red>%x%<color:grey>, <color:green>%y%<color:grey>, <color:blue>%z%<color:grey><bold>]</bold> <color:grey>Monde : <color:yellow>%world%'
+TELEPORT_TO_BLOCK: Cliquez ici pour vous téléporter vers ce bloc
+TELEPORT_BLOCK_NAME: Bloc de téléportation
+TELEPORT_BLOCK_PLACED: "<bold><grey>[</bold><aqua>MagicTeleport</aqua><bold><grey>]</bold> Vous avez placé votre <green>bloc de téléportation"
+NO_PERMISSION_MESSAGE: "Vous n'avez pas la permission de faire cela"
+TELEPORT_ERROR: "Impossible de vous téléporter vers ce bloc."
+PLAYER_RECEIVED_BLOCK: "<bold><grey>[</bold><aqua>MagicTeleport</aqua><bold><grey>]</bold> Vous avez reçu le <green>bloc de téléportation</green>.<newline>Placez-le quelque part puis faites <aqua>/mtp</aqua> pour vous y téléporter"

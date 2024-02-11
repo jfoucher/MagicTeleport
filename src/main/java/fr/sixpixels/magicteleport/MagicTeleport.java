@@ -1,12 +1,16 @@
 package fr.sixpixels.magicteleport;
 
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
+import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.bukkit.*;
+import org.bukkit.block.Block;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -23,13 +27,66 @@ public final class MagicTeleport extends JavaPlugin {
         this.loadLanguageFile();
 
         Bukkit.getServer().getPluginManager().registerEvents(new MagicTeleportListener(this), this);
-
+        PluginCommand cmd = this.getCommand("magicteleport");
+        if (cmd != null) {
+            cmd.setExecutor(new MagicTeleportCommand(this));
+        }
         // TODO get all blocks for all players from config
         // Set block metadata for each block
 
+        restoreTeleportBlocks();
     }
 
-    public void saveBlock(Player p, Location l) {
+    public void restoreTeleportBlocks() {
+        this.reloadConfig();
+        ConfigurationSection all_player_blocks = getConfig().getConfigurationSection("player_blocks");
+        if (all_player_blocks != null) {
+            Set<String> players = all_player_blocks.getKeys(false);
+
+            for(String name: players) {
+                ConfigurationSection player_blocks = all_player_blocks.getConfigurationSection(name);
+                if (player_blocks != null) {
+                    Set<String> block_keys = player_blocks.getKeys(false);
+                    for(String ref: block_keys) {
+                        ConfigurationSection block = player_blocks.getConfigurationSection(ref);
+                        if (block != null) {
+                            String world = block.getString("world");
+                            Location loc = block.getLocation("location");
+                            String display_name = block.getString("display_name");
+
+                            Bukkit.getLogger().warning("[MAgicTeleport] block display name: " + display_name);
+                            if (loc != null) {
+                                if (world == null) {
+                                    World w = loc.getWorld();
+                                    if (w != null) {
+                                        world = w.getName();
+                                    }
+                                }
+                                if (world != null) {
+                                    World locWorld = Bukkit.getServer().getWorld(world);
+                                    if (locWorld != null) {
+                                        Block b = locWorld.getBlockAt(loc);
+                                        if (b.getType() == Material.SHROOMLIGHT) {
+                                            OfflinePlayer p = Bukkit.getOfflinePlayer(name);
+
+                                            b.setMetadata("player_id", new FixedMetadataValue(this, p.getUniqueId().toString()));
+                                            if (display_name != null) {
+                                                b.setMetadata("display_name", new FixedMetadataValue(this, display_name));
+
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    public void saveBlock(Player p, Location l, String displayName) {
+        reloadConfig();
         ConfigurationSection all_player_blocks = getConfig().getConfigurationSection("player_blocks");
         if (all_player_blocks == null) {
             all_player_blocks = getConfig().createSection("player_blocks");
@@ -57,18 +114,37 @@ public final class MagicTeleport extends JavaPlugin {
 
         block.set("world", p.getWorld().getName());
         block.set("location", l);
+        block.set("display_name", displayName);
         saveConfig();
 
         String ce = this.getLanguage().getString("TELEPORT_BLOCK_PLACED");
         if (ce == null) {
             ce = "Teleport block placed";
         }
+        Audience a = (Audience) p;
+        a.sendMessage(MiniMessage.miniMessage().deserialize(ce));
+    }
 
-        p.sendMessage(ce);
+    public boolean teleport(Player p, String blockRef) {
+        Bukkit.getLogger().info("[MagicTeleport] teleporting " + p.getName() + " to  block " + blockRef);
+        Location loc = getConfig().getLocation("player_blocks." + p.getName() + "." + blockRef + ".location");
+        if (loc != null) {
+            loc.add(0.5, 1, 0.5);
+            p.teleport(loc);
+            return true;
+        }
+        String m = getLanguage().getString("TELEPORT_ERROR");
+        if (m == null) {
+            m = "Could not teleport you to this block. This may be a bug";
+        }
+        p.sendMessage(m);
+        return false;
     }
 
 
     public void removeBlock(Player p, Location l) {
+        Bukkit.getLogger().info("removing block at location " + l);
+        reloadConfig();
         ConfigurationSection all_player_blocks = getConfig().getConfigurationSection("player_blocks");
         if (all_player_blocks == null) {
             all_player_blocks = getConfig().createSection("player_blocks");
@@ -91,11 +167,16 @@ public final class MagicTeleport extends JavaPlugin {
             }
 
             Location bl = block.getLocation("location");
+            if (bl != null) {
+                Bukkit.getLogger().info("config block location " + bl);
+                if (bl.getBlockX() == l.getBlockX() && bl.getBlockY() == l.getBlockY() && bl.getBlockX() == l.getBlockX()) {
+                    //remove this config section
+                    getConfig().set("player_blocks." + p.getName() + "."+ref, null);
+                    Bukkit.getLogger().info("Block removed from config");
 
-            if (bl == l) {
-                //remove this config section
-                getConfig().set("player_blocks." + p.getName() + "."+ref, null);
+                }
             }
+
         }
 
         saveConfig();

@@ -1,5 +1,6 @@
 package fr.sixpixels.magicteleport;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -13,8 +14,10 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.metadata.MetadataValue;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class MagicTeleportListener implements Listener {
     public MagicTeleport plugin;
@@ -24,42 +27,40 @@ public class MagicTeleportListener implements Listener {
 
     @EventHandler
     public void onBlockBreak(BlockBreakEvent e) {
-        Player p = e.getPlayer();
-
         Block b = e.getBlock();
 
         if (b.getType().equals(Material.SHROOMLIGHT)
-                && !b.getMetadata("player_id").contains(new FixedMetadataValue(this.plugin, p.getUniqueId()))
+                && !b.getMetadata("player_id").isEmpty()
         ){
-            e.setCancelled(true);
+            Player p = e.getPlayer();
+            //check if the right player
+            List<MetadataValue> ms = b.getMetadata("player_id");
+            boolean isplayer = false;
+            for (MetadataValue m: ms) {
+                if (m.getOwningPlugin() == this.plugin && m.asString().equals(p.getUniqueId().toString())) {
+                    isplayer = true;
+                }
+            }
+            String display_name = null;
+            List<MetadataValue> ns = b.getMetadata("display_name");
+            for (MetadataValue n: ns) {
+                if (n.getOwningPlugin() == this.plugin) {
+                    display_name = n.asString();
+                }
+            }
+
+            if (isplayer) {
+                ItemStack sp = TeleportBlock.getBlock(display_name);
+
+                p.getWorld().dropItem(b.getLocation(), sp);
+                e.setDropItems(false);
+                // Remove item from config
+                this.plugin.removeBlock(p, b.getLocation());
+            } else {
+                e.setCancelled(true);
+            }
+
         }
-
-        if (b.getType().equals(Material.SHROOMLIGHT)
-                && !b.getMetadata("player_id").contains(new FixedMetadataValue(this.plugin, p.getUniqueId()))
-        ){
-            ItemStack sp = getItemStack();
-
-            p.getWorld().dropItem(b.getLocation(), sp);
-
-            // Remove item from config
-            this.plugin.removeBlock(p, b.getLocation());
-        }
-    }
-
-    private static ItemStack getItemStack() {
-        ItemStack sp = new ItemStack(Material.SHROOMLIGHT);
-        ItemMeta meta = sp.getItemMeta();
-        if (meta != null) {
-            meta.setDisplayName("Bloc de téléportation");
-            meta.setLocalizedName("teleport_block");
-            ArrayList<String> lore = new ArrayList<>();
-            lore.add("Placez ce bloc n'importe où");
-            lore.add("pour vous y téléporter plus tard");
-            meta.setLore(lore);
-        }
-
-        sp.setItemMeta(meta);
-        return sp;
     }
 
     @EventHandler
@@ -67,8 +68,8 @@ public class MagicTeleportListener implements Listener {
 
         Player p = e.getPlayer();
         ItemStack tool = p.getInventory().getItemInMainHand();
-        ItemMeta meta = tool.getItemMeta();
 
+        ItemMeta meta = tool.getItemMeta();
         Block block = e.getBlock();
 
         if (meta == null) {
@@ -76,9 +77,10 @@ public class MagicTeleportListener implements Listener {
         }
 
         if (meta.getLocalizedName().equals("teleport_block")) {
-            block.setMetadata("player_id", new FixedMetadataValue(this.plugin, p.getUniqueId()));
+            block.setMetadata("player_id", new FixedMetadataValue(this.plugin, p.getUniqueId().toString()));
+            block.setMetadata("display_name", new FixedMetadataValue(this.plugin, meta.getDisplayName()));
             // Save block location in config
-            this.plugin.saveBlock(p, block.getLocation());
+            this.plugin.saveBlock(p, block.getLocation(), meta.getDisplayName());
         }
     }
 }
