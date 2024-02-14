@@ -44,6 +44,7 @@ public class MagicTeleportListener implements Listener {
             String display_name = null;
             List<MetadataValue> ns = b.getMetadata("display_name");
             for (MetadataValue n: ns) {
+                Bukkit.getLogger().info("metadata value " + n.asString());
                 if (n.getOwningPlugin() == this.plugin) {
                     display_name = n.asString();
                 }

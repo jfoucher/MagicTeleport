@@ -3,11 +3,8 @@ package fr.sixpixels.magicteleport;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
-import net.kyori.adventure.text.minimessage.tag.standard.StandardTags;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -15,9 +12,8 @@ import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
 public class MagicTeleportCommand  implements CommandExecutor {
@@ -27,7 +23,7 @@ public class MagicTeleportCommand  implements CommandExecutor {
         this.plugin = plugin;
     }
     @Override
-    public boolean onCommand(CommandSender commandSender, Command command, String s, String[] args) {
+    public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, String s, String[] args) {
         if (s.equalsIgnoreCase("magicteleport") || s.equalsIgnoreCase("mtp")) {
             if (args.length > 0) {
                 if (args[0].equalsIgnoreCase("give")) {
@@ -45,12 +41,23 @@ public class MagicTeleportCommand  implements CommandExecutor {
                     }
 
                     commandSender.sendMessage(permError);
-                    return false;
+                    return true;
                 }
                 if (commandSender instanceof Player) {
                     // teleport to given block;
+                    if (commandSender.hasPermission("magicteleport.self") || commandSender.hasPermission("magicteleport.admin")) {
 
-                    return this.plugin.teleport((Player) commandSender, args[0]);
+                        return this.plugin.teleport((Player) commandSender, args[0]);
+                    } else {
+                        String permError = this.plugin.getLanguage().getString("NO_PERMISSION_MESSAGE");
+
+                        if (permError == null){
+                            permError = "&cYou're not allowed to do this";
+                        }
+
+                        commandSender.sendMessage(permError);
+                        return true;
+                    }
                 }
 
                 return false;
@@ -59,6 +66,16 @@ public class MagicTeleportCommand  implements CommandExecutor {
             // Show the list of possible teleport location
 
             if (commandSender instanceof Player) {
+                if (!commandSender.hasPermission("magicteleport.self") && !commandSender.hasPermission("magicteleport.admin")) {
+                    String permError = this.plugin.getLanguage().getString("NO_PERMISSION_MESSAGE");
+
+                    if (permError == null){
+                        permError = "&cYou're not allowed to do this";
+                    }
+
+                    commandSender.sendMessage(permError);
+                    return true;
+                }
                 MiniMessage mm = MiniMessage.miniMessage();
 
                 Audience p = (Audience) commandSender;
@@ -72,7 +89,7 @@ public class MagicTeleportCommand  implements CommandExecutor {
                         Set<String> keys = pbs.getKeys(false);
 
                         if (keys.isEmpty()) {
-                            this.noBlocks(p);
+                            return this.noBlocks(p);
                         }
                         String m = this.plugin.getLanguage().getString("CHOOSE_DESTINATION");
                         if (m == null) {
@@ -157,6 +174,20 @@ public class MagicTeleportCommand  implements CommandExecutor {
         if (args.length > 1) {
             Player p = Bukkit.getPlayer(args[1]);
             if (p != null) {
+                // TODO get count of blocks for this player.
+                // TODO if > 3 then do not give block
+                ConfigurationSection pb = this.plugin.getConfig().getConfigurationSection("player_blocks." + p.getName());
+                if (pb != null && pb.getKeys(false).size() >= 3) {
+                    //TODO send message
+                    commandSender.sendMessage("Player " + p.getName() + " already has too many teleport blocks");
+                    String m = this.plugin.getLanguage().getString("TOO_MANY_BLOCKS");
+                    if (m == null) {
+                        m = "<bold><grey>[</bold><aqua>MagicTeleport</aqua><bold><grey>]</bold> You already have too many <green>teleportation blocs</green>, sorry.";
+                    }
+                    Audience a = (Audience) p;
+                    a.sendMessage(MiniMessage.miniMessage().deserialize(m));
+                    return true;
+                }
                 ItemStack blk = TeleportBlock.getBlock(null);
                 p.getInventory().addItem(blk);
                 commandSender.sendMessage("Player " + args[1] + " received the teleport block");
