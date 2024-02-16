@@ -11,6 +11,7 @@ import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.permissions.PermissionAttachmentInfo;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -215,5 +216,23 @@ public final class MagicTeleport extends JavaPlugin {
         } catch (IOException | InvalidConfigurationException e) {
             Bukkit.getLogger().warning("Could not load language file for language " + lang);
         }
+    }
+
+    public static int getAmount(Player player) {
+        String permissionPrefix = "magicteleport.quantity.";
+        int max = 1;
+        for (PermissionAttachmentInfo attachmentInfo : player.getEffectivePermissions()) {
+            String permission = attachmentInfo.getPermission();
+
+            if (permission.startsWith(permissionPrefix)) {
+                Bukkit.getLogger().info("perm check " + permission);
+                int qty = Integer.parseInt(permission.substring(permission.lastIndexOf(".") + 1));
+                if (qty > max) {
+                    max = qty;
+                }
+            }
+        }
+
+        return max;
     }
 }

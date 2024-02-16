@@ -7,4 +7,4 @@ TELEPORT_BLOCK_PLACED: "<bold><grey>[</bold><aqua>MagicTeleport</aqua><bold><gre
 NO_PERMISSION_MESSAGE: "Vous n'avez pas la permission de faire cela"
 TELEPORT_ERROR: "Impossible de vous téléporter vers ce bloc."
 PLAYER_RECEIVED_BLOCK: "<bold><grey>[</bold><aqua>MagicTeleport</aqua><bold><grey>]</bold> Vous avez reçu le <green>bloc de téléportation</green>.<newline>Placez-le quelque part puis faites <aqua>/mtp</aqua> pour vous y téléporter"
-TOO_MANY_BLOCKS: "<bold><grey>[</bold><aqua>MagicTeleport</aqua><bold><grey>]</bold> Vous avez déjà trop de <green>blocs de téléportation</green>, désolé"
+TOO_MANY_BLOCKS: "<bold><grey>[</bold><aqua>MagicTeleport</aqua><bold><grey>]</bold> Vous avez déjà placé trop de <green>blocs de téléportation</green>, désolé. Votre limite est de <red>%limit%"

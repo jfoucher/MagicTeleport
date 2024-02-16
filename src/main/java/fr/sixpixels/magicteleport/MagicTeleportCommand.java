@@ -12,6 +12,9 @@ import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.permissions.Permission;
+import org.bukkit.permissions.PermissionAttachmentInfo;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
@@ -176,21 +179,37 @@ public class MagicTeleportCommand  implements CommandExecutor {
             if (p != null) {
                 // TODO get count of blocks for this player.
                 // TODO if > 3 then do not give block
+                this.plugin.reloadConfig();
                 ConfigurationSection pb = this.plugin.getConfig().getConfigurationSection("player_blocks." + p.getName());
-                if (pb != null && pb.getKeys(false).size() >= 3) {
+                int count = 0;
+                if (pb != null) {
+                    count += pb.getKeys(false).size();
+                }
+                // Also count items in inventory ?
+//                for (ItemStack item: p.getInventory()) {
+//                    ItemMeta meta = item.getItemMeta();
+//                    if (meta != null && meta.getLocalizedName().equals("teleport_block")) {
+//                        count ++;
+//                    }
+//                }
+
+                if (count >= MagicTeleport.getAmount(p)) {
                     //TODO send message
                     commandSender.sendMessage("Player " + p.getName() + " already has too many teleport blocks");
+                    Bukkit.getLogger().info("[MagicTeleport] Player " + p.getName() + " already has too many teleport blocks placed");
                     String m = this.plugin.getLanguage().getString("TOO_MANY_BLOCKS");
                     if (m == null) {
-                        m = "<bold><grey>[</bold><aqua>MagicTeleport</aqua><bold><grey>]</bold> You already have too many <green>teleportation blocs</green>, sorry.";
+                        m = "<bold><grey>[</bold><aqua>MagicTeleport</aqua><bold><grey>]</bold> You are using too many <green>teleport blocks</green>, sorry. Your limit is <red>%limit%";
                     }
+
                     Audience a = (Audience) p;
-                    a.sendMessage(MiniMessage.miniMessage().deserialize(m));
+                    a.sendMessage(MiniMessage.miniMessage().deserialize(m.replaceAll("%limit%", String.valueOf(MagicTeleport.getAmount(p)))));
                     return true;
                 }
                 ItemStack blk = TeleportBlock.getBlock(null);
                 p.getInventory().addItem(blk);
                 commandSender.sendMessage("Player " + args[1] + " received the teleport block");
+                Bukkit.getLogger().info("[MagicTeleport] Player " + args[1] + " received the teleport block");
                 Audience a = (Audience) p;
                 String m = this.plugin.getLanguage().getString("PLAYER_RECEIVED_BLOCK");
                 if (m == null) {
@@ -201,10 +220,11 @@ public class MagicTeleportCommand  implements CommandExecutor {
                 return true;
             } else {
                 commandSender.sendMessage("Player " + args[1] + " does not exist or is offline");
+                return true;
             }
         }
 
         commandSender.sendMessage("Usage: /mtp give <player_name>");
-        return false;
+        return true;
     }
 }

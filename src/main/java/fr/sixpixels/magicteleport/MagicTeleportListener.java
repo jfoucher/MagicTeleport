@@ -1,10 +1,13 @@
 package fr.sixpixels.magicteleport;
 
+import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.CreatureSpawner;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -78,10 +81,32 @@ public class MagicTeleportListener implements Listener {
         }
 
         if (meta.getLocalizedName().equals("teleport_block")) {
-            block.setMetadata("player_id", new FixedMetadataValue(this.plugin, p.getUniqueId().toString()));
-            block.setMetadata("display_name", new FixedMetadataValue(this.plugin, meta.getDisplayName()));
-            // Save block location in config
-            this.plugin.saveBlock(p, block.getLocation(), meta.getDisplayName());
+            this.plugin.reloadConfig();
+            ConfigurationSection pb = this.plugin.getConfig().getConfigurationSection("player_blocks." + p.getName());
+            int count = 0;
+            if (pb != null) {
+                count += pb.getKeys(false).size();
+            }
+            if (count >= MagicTeleport.getAmount(p)) {
+                //TODO send message
+                Bukkit.getLogger().info("[MagicTeleport] Player " + p.getName() + " already has too many teleport blocks placed");
+                String m = this.plugin.getLanguage().getString("TOO_MANY_BLOCKS");
+                if (m == null) {
+                    m = "<bold><grey>[</bold><aqua>MagicTeleport</aqua><bold><grey>]</bold> You are using too many <green>teleport blocks</green>, sorry. Your limit is <red>%limit%";
+                }
+
+                Audience a = (Audience) p;
+                a.sendMessage(MiniMessage.miniMessage().deserialize(m.replaceAll("%limit%", String.valueOf(MagicTeleport.getAmount(p)))));
+                e.setCancelled(true);
+            } else {
+                block.setMetadata("player_id", new FixedMetadataValue(this.plugin, p.getUniqueId().toString()));
+                block.setMetadata("display_name", new FixedMetadataValue(this.plugin, meta.getDisplayName()));
+                // Save block location in config
+                this.plugin.saveBlock(p, block.getLocation(), meta.getDisplayName());
+            }
+
         }
     }
+
+
 }

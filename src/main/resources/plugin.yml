@@ -20,3 +20,7 @@ permissions:
   magicteleport.self:
     description: "Allows the player to teleport to their block"
     default: true
+
+  magicteleport.quantity:
+    description: "Sets the maximum quantity of teleport blocks the player can own"
+    default: true
