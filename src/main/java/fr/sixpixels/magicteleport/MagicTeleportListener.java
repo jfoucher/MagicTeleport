@@ -14,6 +14,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
@@ -64,6 +65,21 @@ public class MagicTeleportListener implements Listener {
                 e.setCancelled(true);
             }
 
+        }
+    }
+
+    @EventHandler
+    public void onEntityExplode(EntityExplodeEvent event) {
+        for (Block block : new ArrayList<Block>(event.blockList())) {
+            if(block.getType() != Material.SHROOMLIGHT) {
+                continue;
+            }
+
+            for (MetadataValue meta : block.getMetadata("player_id")) {
+                if (meta.getOwningPlugin() == this.plugin) {
+                    event.blockList().remove(block);
+                }
+            }
         }
     }
 
