@@ -64,7 +64,6 @@ public class MagicTeleportListener implements Listener {
             } else {
                 e.setCancelled(true);
             }
-
         }
     }
 

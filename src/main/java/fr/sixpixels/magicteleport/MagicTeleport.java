@@ -16,7 +16,9 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public final class MagicTeleport extends JavaPlugin {
 
@@ -99,17 +101,17 @@ public final class MagicTeleport extends JavaPlugin {
         }
 
         // Get all existing block keys
-        Set<String> block_keys = player_blocks.getKeys(false);
+        List<Integer> block_keys = player_blocks.getKeys(false)
+                .stream()
+                .map((s) -> Integer.parseInt(s, 10))
+                .collect(Collectors.toList());
+        int block_ref = 1;
 
-        int block_ref = 0;
-        for(String ref: block_keys) {
-            int r = Integer.parseInt(ref, 10);
-            if (r > block_ref) {
-                block_ref = r;
+        while (true) {
+            if (!block_keys.contains(block_ref)) {
+                break;
             }
         }
-
-        block_ref += 1;
 
         ConfigurationSection block = player_blocks.createSection(String.format("%d", block_ref));
 

@@ -13,3 +13,6 @@ If I have the `magicteleport.admin` permission I can give the teleport block to 
 The number of blocks each player can place is handle by the `magicteleport.quantity.x` permission. For example a player with `magicteleport.quantity.1` will only be able to place 1 teleport block, but a user with `magicteleport.quantity.6` will be able to place 6 teleport blocks in the world. This does not affect the number of teleport blocks they can have in inventory.
 
 Teleport blocks can be renamed in an anvil, and then place somewhere. The name you have defined will then appear in the block list when choosing where to teleport to. This makes it easier to remember which block will teleport you where.
+
+### Translation
+Add your translation file in the lang folder or copy the fr_FR.yml file and edit the strings therein. Then change the language configuration in config.yml to be the name of your file without the .yml part Restart your server. 
