@@ -107,10 +107,13 @@ public final class MagicTeleport extends JavaPlugin {
                 .collect(Collectors.toList());
         int block_ref = 1;
 
-        while (true) {
+        int i = 0;
+        while (i < 50) {
             if (!block_keys.contains(block_ref)) {
                 break;
             }
+            block_ref += 1;
+            i++;
         }
 
         ConfigurationSection block = player_blocks.createSection(String.format("%d", block_ref));
